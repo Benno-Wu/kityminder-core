@@ -2,7 +2,7 @@
 
 var path = require('path');
 
-module.exports = function(grunt) {
+module.exports = function (grunt) {
     'use strict';
 
     // These plugins provide necessary tasks.
@@ -15,19 +15,27 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-browser-sync');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-babel');
 
     var pkg = grunt.file.readJSON('package.json');
 
     var banner = '/*!\n' +
         ' * ====================================================\n' +
-        ' * <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
+        ' * <%= pkg.name %> - v<%= pkg.version %> - ' +
         '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
-        '<%= pkg.homepage ? " * " + pkg.homepage + "\\n" : "" %>' +
         ' * GitHub: <%= pkg.repository.url %> \n' +
-        ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
-        ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %>\n' +
+        ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author %>;' +
+        ' Licensed <%= pkg.license %>\n' +
         ' * ====================================================\n' +
-        ' */\n\n';
+        ' */\n\n' +
+        `/*!
+ * ====================================================
+ * Kity Minder Core - v1.4.50 - 2018-09-17
+ * https://github.com/fex-team/kityminder-core
+ * GitHub: https://github.com/fex-team/kityminder-core.git 
+ * Copyright (c) 2018 Baidu FEX; Licensed BSD-3-Clause
+ * ====================================================
+ */\n\n`;
 
     var expose = '\nuse(\'expose-kityminder\');\n';
 
@@ -38,7 +46,8 @@ module.exports = function(grunt) {
         pkg: pkg,
 
         clean: {
-            last: 'dist'
+            first: ['dist', 'temp'],
+            last: ['temp'],
         },
 
         // watch
@@ -61,15 +70,29 @@ module.exports = function(grunt) {
             }
         },
 
+        babel: {
+            options: {
+                presets: ['@babel/preset-env'],
+            },
+            dist: {
+                files: [{
+                    expand: true,
+                    cwd: 'src/',
+                    src: ['**/*.js'],
+                    dest: 'temp/',
+                },],
+            }
+        },
+
         // resolve dependence
         dependence: {
             options: {
-                base: 'src',
+                base: 'temp',
                 entrance: 'expose-kityminder'
             },
             merge: {
                 files: [{
-                    src: 'src/**/*.js',
+                    src: 'temp/**/*.js',
                     dest: 'dist/kityminder.core.js'
                 }]
             }
@@ -109,7 +132,7 @@ module.exports = function(grunt) {
 
 
     // Build task(s).
-    grunt.registerTask('build', ['clean', 'dependence', 'concat:build', 'uglify:minimize', 'copy']);
+    grunt.registerTask('build', ['clean:first', 'babel', 'dependence', 'concat:build', 'uglify:minimize', 'copy', 'clean:last']);
     grunt.registerTask('dev', ['browserSync', 'watch']);
 
 };

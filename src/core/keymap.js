@@ -1,4 +1,4 @@
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     var keymap = {
         'Backspace': 8,
         'Tab': 9,
@@ -11,7 +11,7 @@ define(function(require, exports, module) {
 
         'Esc': 27,
 
-        'Spacebar': 32,
+        'Space': 32,
 
         'PageUp': 33,
         'PageDown': 34,
@@ -114,7 +114,7 @@ define(function(require, exports, module) {
     var aCharCode = 'a'.charCodeAt(0);
 
     // letters
-    'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function(letter) {
+    'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function (letter) {
         keymap[letter] = aKeyCode + (letter.charCodeAt(0) - aCharCode);
     });
 
@@ -122,7 +122,7 @@ define(function(require, exports, module) {
     var n = 9;
     do {
         keymap[n.toString()] = n + 48;
-    } while (--n);
+    } while (n--);
 
     module.exports = keymap;
 });

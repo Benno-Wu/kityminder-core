@@ -1,20 +1,16 @@
 /**
- * @fileOverview
- *
  * 默认导出（全部模块）
- *
- * @author: techird
- * @copyright: Baidu FEX, 2014
  */
 
 
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     var kityminder = {
         version: require('./core/minder').version
     };
 
     // 核心导出，大写的部分导出类，小写的部分简单 require 一下
     // 这里顺序是有讲究的，调整前先弄清楚依赖关系。
+    /* 核心代码 */
     require('./core/utils');
     kityminder.Minder = require('./core/minder');
     kityminder.Command = require('./core/command');
@@ -42,7 +38,7 @@ define(function(require, exports, module) {
     require('./core/_boxv');
     require('./core/patch');
 
-    // 模块依赖
+    /* 模块 */
     require('./module/arrange');
     require('./module/basestyle');
     require('./module/clipboard');
@@ -65,13 +61,16 @@ define(function(require, exports, module) {
     require('./module/text');
     require('./module/view');
     require('./module/zoom');
+    require('./module/extra');
 
+    /* 数据 */
     require('./protocol/json');
     require('./protocol/text');
     require('./protocol/markdown');
     require('./protocol/svg');
     require('./protocol/png');
 
+    /* 布局 */
     require('./layout/mind');
     require('./layout/btree');
     require('./layout/filetree');
@@ -79,6 +78,7 @@ define(function(require, exports, module) {
     require('./layout/fish-bone-slave');
     require('./layout/tianpan');
 
+    /* 皮肤 */
     require('./theme/default');
     require('./theme/snow');
     require('./theme/fresh');
@@ -87,6 +87,7 @@ define(function(require, exports, module) {
     require('./theme/wire');
     require('./theme/tianpan');
 
+    /* 连线 */
     require('./connect/arc');
     require('./connect/arc_tp');
     require('./connect/bezier');
@@ -95,6 +96,7 @@ define(function(require, exports, module) {
     require('./connect/poly');
     require('./connect/under');
 
+    /* 模板 */
     require('./template/default');
     require('./template/structure');
     require('./template/filetree');
