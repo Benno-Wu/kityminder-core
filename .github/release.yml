@@ -1,0 +1,23 @@
+# .github/release.yml
+
+changelog:
+  # exclude:
+  #   labels:
+  #     - ignore-for-release
+  #   authors:
+  #     - octocat
+  categories:
+    - title: Breaking Changes 💥
+      labels:
+        - Semver-Major
+        - breaking change
+    - title: Features 🚴‍♂️🚵‍♂️🚴‍♂️
+      labels:
+        - Semver-Minor
+        - enhancement
+    - title: Bug Fix 🐛
+      labels:
+        - bug
+    - title: Other Changes
+      labels:
+        - "*"

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
-    <title>KityMinder Example</title>
+    <title>MindEditor Example</title>
 
-    <link href="favicon.ico" type="image/x-icon" rel="shortcut icon">
     <link rel="stylesheet" href="src/kityminder.css" rel="stylesheet">
 
     <style type="text/css">
@@ -15,41 +15,17 @@
         }
 
         #minder-view {
-            position: absolute;
             border: 1px solid #ccc;
-            left: 10px;
-            top: 10px;
-            bottom: 10px;
-            right: 10px;
+            width: 50vw;
+            height: 50vh;
         }
     </style>
 
     <script type="text/javascript" src="node_modules/kity/dist/kity.js"></script>
 </head>
+
 <body>
-    <script id="minder-view" type="application/kityminder" minder-data-type="json">
-    {
-        "root": {
-            "data": {
-                "text": "百度产品",
-                "image": "https://www.baidu.com/img/bd_logo1.png?where=super",
-                "imageSize": { "width": 270, "height": 129 }
-            },
-            "children": [
-                { "data": { "text": "新闻" } },
-                { "data": { "text": "网页", "priority": 1 } },
-                { "data": { "text": "贴吧", "priority": 2 } },
-                { "data": { "text": "知道", "priority": 2 } },
-                { "data": { "text": "音乐", "priority": 3 } },
-                { "data": { "text": "图片", "priority": 3 } },
-                { "data": { "text": "视频", "priority": 3 } },
-                { "data": { "text": "地图", "priority": 3 } },
-                { "data": { "text": "百科", "priority": 3 } },
-                { "data": { "text": "更多", "hyperlink": "http://www.baidu.com/more" } }
-            ]
-        }
-    }
-    </script>
+    <div id="minder-view"></div>
 </body>
 
 <!-- *************************** Module 形式加载引入 **************************** -->
@@ -59,13 +35,77 @@
     seajs.config({
         base: './src'
     });
-    define('start', function(require) {
+    define('start', function (require) {
         var Minder = require('kityminder').Minder;
 
         // 创建 km 实例
         var km = window.km = new Minder();
-        km.setup('#minder-view');
-    });
+        km.renderTo('#minder-view')
+        km.importJson({
+            root: {
+                data: {
+                    text: "root",
+                },
+                children: [
+                    {
+                        data: {
+                            text: "todo",
+                            progress: 1,
+                            priority: 1,
+                            resource: [
+                                "✔"
+                            ],
+                            // img -> raster, CORS
+                            // image: "https://img.shields.io/github/package-json/name/Benno-Wu/kityminder-core?label=BennoWu",
+                            // imageTitle: "awesome shields.png",
+                            // imageSize: { width: 160, height: 20, },
+                            hyperlink: "https://github.com/Benno-Wu",
+                            note: "Hi!",
+                            extra: ['attachment', '附件', 'longlonglonglonglong']
+                        },
+                        children: [
+                            { data: { text: "todo" }, },
+                            { data: { text: "todo" }, },
+                        ]
+                    }
+                ]
+            },
+            template: "structure", theme: "fresh-blue", version: "2.0.0",
+            tags: [],
+        });
+        km.select(km.getRoot().children[0])
+    })
     seajs.use('start');
 </script>
+<script>
+    setTimeout(async () => {
+        const _ = new Image()
+        const export_ = async () => {
+            let res
+            try {
+                res = await km.exportData('png')
+            } catch ([error, _]) {
+                res = _
+                // console.log(error)
+            }
+            return res
+        }
+        _.src = await export_()
+        const button = document.createElement('button')
+        button.textContent = 'reload'
+        button.onclick = async () => {
+            _.src = await export_()
+        }
+        document.body.appendChild(button)
+        const div = document.createElement('div')
+        div.appendChild(_)
+        document.body.appendChild(div)
+        km.on('DropOnNode', console.log)
+    }, 2000);
+    setTimeout(() => {
+        // document.querySelectorAll('*').forEach(v =>
+        //     v.style.outline = `1px solid #${Math.random().toString(16).slice(-6)}`)
+    }, 3000)
+</script>
+
 </html>

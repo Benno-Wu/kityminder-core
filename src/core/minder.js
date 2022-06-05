@@ -1,19 +1,14 @@
 /**
- * @fileOverview
- *
  * KityMinder 类，暴露在 window 上的唯一变量
- *
- * @author: techird
- * @copyright: Baidu FEX, 2014
  */
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     var kity = require('./kity');
     var utils = require('./utils');
 
     var _initHooks = [];
 
     var Minder = kity.createClass('Minder', {
-        constructor: function(options) {
+        constructor: function (options) {
             this._options = utils.extend({}, options);
 
             var initHooks = _initHooks.slice();
@@ -21,7 +16,7 @@ define(function(require, exports, module) {
             var initHook;
             while (initHooks.length) {
                 initHook = initHooks.shift();
-                if (typeof(initHook) == 'function') {
+                if (typeof (initHook) == 'function') {
                     initHook.call(this, this._options);
                 }
             }
@@ -30,9 +25,9 @@ define(function(require, exports, module) {
         }
     });
 
-    Minder.version = '1.4.43';
+    Minder.version = '2.0.0';
 
-    Minder.registerInitHook = function(hook) {
+    Minder.registerInitHook = function (hook) {
         _initHooks.push(hook);
     };
 

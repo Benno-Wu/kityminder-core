@@ -1,21 +1,21 @@
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     var kity = require('../core/kity');
     var utils = require('../core/utils');
     var MinderNode = require('../core/node');
     var Command = require('../core/command');
     var Module = require('../core/module');
 
-    Module.register('ClipboardModule', function() {
+    Module.register('ClipboardModule', function () {
         var km = this,
             _clipboardNodes = [],
             _selectedNodes = [];
-        
+
         function appendChildNode(parent, child) {
             _selectedNodes.push(child);
             km.appendNode(child, parent);
             child.render();
             child.setLayoutOffset(null);
-            var children = child.children.map(function(node) {
+            var children = child.children.map(function (node) {
                 return node.clone();
             });
 
@@ -35,13 +35,13 @@ define(function(require, exports, module) {
 
         function sendToClipboard(nodes) {
             if (!nodes.length) return;
-            nodes.sort(function(a, b) {
+            nodes.sort(function (a, b) {
                 return a.getIndex() - b.getIndex();
             });
-            _clipboardNodes = nodes.map(function(node) {
+            _clipboardNodes = nodes.map(function (node) {
                 return node.clone();
             });
-        } 
+        }
 
         /**
          * @command Copy
@@ -54,7 +54,7 @@ define(function(require, exports, module) {
         var CopyCommand = kity.createClass('CopyCommand', {
             base: Command,
 
-            execute: function(km) {
+            execute: function (km) {
                 sendToClipboard(km.getSelectedAncestors(true));
                 this.setContentChanged(false);
             }
@@ -71,7 +71,7 @@ define(function(require, exports, module) {
         var CutCommand = kity.createClass('CutCommand', {
             base: Command,
 
-            execute: function(km) {
+            execute: function (km) {
                 var ancestors = km.getSelectedAncestors();
 
                 if (ancestors.length === 0) return;
@@ -80,7 +80,7 @@ define(function(require, exports, module) {
 
                 km.select(MinderNode.getCommonAncestor(ancestors), true);
 
-                ancestors.slice().forEach(function(node) {
+                ancestors.slice().forEach(function (node) {
                     km.removeNode(node);
                 });
 
@@ -99,7 +99,7 @@ define(function(require, exports, module) {
         var PasteCommand = kity.createClass('PasteCommand', {
             base: Command,
 
-            execute: function(km) {
+            execute: function (km) {
                 if (_clipboardNodes.length) {
                     var nodes = km.getSelectedNodes();
                     if (!nodes.length) return;
@@ -117,22 +117,20 @@ define(function(require, exports, module) {
                 }
             },
 
-            queryState: function(km) {
+            queryState: function (km) {
                 return km.getSelectedNode() ? 0 : -1;
             }
         });
 
         /**
          * @Desc: 若支持原生clipboadr事件则基于原生扩展，否则使用km的基础事件只处理节点的粘贴复制
-         * @Editor: Naixor
-         * @Date: 2015.9.20
          */
         if (km.supportClipboardEvent && !kity.Browser.gecko) {
             var Copy = function (e) {
                 this.fire('beforeCopy', e);
             }
 
-            var Cut = function (e) {    
+            var Cut = function (e) {
                 this.fire('beforeCut', e);
             }
 
@@ -161,7 +159,7 @@ define(function(require, exports, module) {
                     'paste': PasteCommand
                 },
                 'commandShortcutKeys': {
-                    'copy': 'normal::ctrl+c|',
+                    'copy': 'normal::ctrl+c',
                     'cut': 'normal::ctrl+x',
                     'paste': 'normal::ctrl+v'
                 },

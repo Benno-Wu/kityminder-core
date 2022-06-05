@@ -1,13 +1,8 @@
 /**
- * @fileOverview
- *
  * 添加快捷键支持
- *
- * @author: techird
- * @copyright: Baidu FEX, 2014
  */
 
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     var kity = require('./kity');
     var utils = require('./utils');
     var keymap = require('./keymap');
@@ -25,10 +20,10 @@ define(function(require, exports, module) {
         var SHIFT_MASK = 0x4000;
         var metaKeyCode = 0;
 
-        if (typeof(unknown) == 'string') {
+        if (typeof (unknown) == 'string') {
             // unknown as string
-            unknown.toLowerCase().split(/\+\s*/).forEach(function(name) {
-                switch(name) {
+            unknown.toLowerCase().split(/\+\s*/).forEach(function (name) {
+                switch (name) {
                     case 'ctrl':
                     case 'cmd':
                         metaKeyCode |= CTRL_MASK;
@@ -60,7 +55,7 @@ define(function(require, exports, module) {
         return metaKeyCode;
     }
     kity.extendClass(MinderEvent, {
-        isShortcutKey: function(keyCombine) {
+        isShortcutKey: function (keyCombine) {
             var keyEvent = this.originEvent;
             if (!keyEvent) return false;
 
@@ -68,35 +63,35 @@ define(function(require, exports, module) {
         }
     });
 
-    Minder.registerInitHook(function() {
+    Minder.registerInitHook(function () {
         this._initShortcutKey();
     });
 
     kity.extendClass(Minder, {
 
-        _initShortcutKey: function() {
+        _initShortcutKey: function () {
             this._bindShortcutKeys();
         },
 
-        _bindShortcutKeys: function() {
+        _bindShortcutKeys: function () {
             var map = this._shortcutKeys = {};
             var has = 'hasOwnProperty';
-            this.on('keydown', function(e) {
+            this.on('keydown', function (e) {
                 for (var keys in map) {
                     if (!map[has](keys)) continue;
                     if (e.isShortcutKey(keys)) {
                         var fn = map[keys];
                         if (fn.__statusCondition && fn.__statusCondition != this.getStatus()) return;
                         fn();
-                        e.preventDefault();
+                        if (!fn.notPreventDefault) e.preventDefault();
                     }
                 }
             });
         },
 
-        addShortcut: function(keys, fn) {
+        addShortcut: function (keys, fn) {
             var binds = this._shortcutKeys;
-            keys.split(/\|\s*/).forEach(function(combine) {
+            keys.split(/\|\s*/).forEach(function (combine) {
                 var parts = combine.split('::');
                 var status;
                 if (parts.length > 1) {
@@ -108,7 +103,7 @@ define(function(require, exports, module) {
             });
         },
 
-        addCommandShortcutKeys: function(cmd, keys) {
+        addCommandShortcutKeys: function (cmd, keys, notPreventDefault) {
             var binds = this._commandShortcutKeys || (this._commandShortcutKeys = {});
             var obj = {},
                 km = this;
@@ -120,11 +115,11 @@ define(function(require, exports, module) {
 
             var minder = this;
 
-            utils.each(obj, function(keys, command) {
+            utils.each(obj, function (keys, command) {
 
                 binds[command] = keys;
 
-                minder.addShortcut(keys, function execCommandByShortcut() {
+                function execCommandByShortcut() {
                     /**
                      * 之前判断有问题，由 === 0 改为 !== -1
                      * @editor Naixor
@@ -133,22 +128,19 @@ define(function(require, exports, module) {
                     if (minder.queryCommandState(command) !== -1) {
                         minder.execCommand(command);
                     }
-                });
+                }
+                execCommandByShortcut.notPreventDefault = notPreventDefault
+                minder.addShortcut(keys, execCommandByShortcut);
             });
         },
 
-        getCommandShortcutKey: function(cmd) {
+        getCommandShortcutKey: function (cmd) {
             var binds = this._commandShortcutKeys;
             return binds && binds[cmd] || null;
         },
-        
-        /**
-         * @Desc: 添加一个判断是否支持原生Clipboard的变量，用于对ctrl + v和ctrl + c的处理
-         * @Editor: Naixor
-         * @Date: 2015.9.20
-         */
-        supportClipboardEvent: (function(window) {
+
+        supportClipboardEvent: () => {
             return !!window.ClipboardEvent;
-        })(window)
+        }
     });
 });

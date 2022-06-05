@@ -1,4 +1,4 @@
-define(function(require, exports, module) {
+define(function (require, exports, module) {
     var kity = require('../core/kity');
     var data = require('../core/data');
     var Promise = require('../core/promise');
@@ -6,9 +6,9 @@ define(function(require, exports, module) {
     var DomURL = window.URL || window.webkitURL || window;
 
     function loadImage(info, callback) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             var image = document.createElement("img");
-            image.onload = function() {
+            image.onload = function () {
                 resolve({
                     element: this,
                     x: info.x,
@@ -17,7 +17,7 @@ define(function(require, exports, module) {
                     height: info.height
                 });
             };
-            image.onerror = function(err) {
+            image.onerror = function (err) {
                 reject(err);
             };
 
@@ -42,8 +42,8 @@ define(function(require, exports, module) {
                     var blob = xmlHttp.response;
 
                     var image = document.createElement('img');
-                    
-                    image.src = DomURL.createObjectURL(blob);                    
+
+                    image.src = DomURL.createObjectURL(blob);
                     image.onload = function () {
                         DomURL.revokeObjectURL(image.src);
                         resolve({
@@ -71,29 +71,30 @@ define(function(require, exports, module) {
 
             renderContainer = minder.getRenderContainer(),
             renderBox = renderContainer.getRenderBox(),
-            width = renderBox.width + 1,
-            height = renderBox.height + 1,
+            width = renderBox.width + 3,
+            height = renderBox.height + 3,
 
             blob, svgUrl, img;
 
         // 保存原始变换，并且移动到合适的位置
-        paperTransform = paper.shapeNode.getAttribute('transform');
-        paper.shapeNode.setAttribute('transform', 'translate(0.5, 0.5)');
-        renderContainer.translate(-renderBox.x, -renderBox.y);
+        // paperTransform = paper.shapeNode.getAttribute('transform');
+        // paper.shapeNode.setAttribute('transform', 'translate(0.5, 0.5)');
+        renderContainer.translate(-renderBox.x + 1, -renderBox.y + 1);
 
         // 获取当前的 XML 代码
-        svgXml = paper.container.innerHTML;
+        // svgXml = paper.container.innerHTML;
+        svgXml = paper.node.outerHTML;
 
         // 回复原始变换及位置
-        renderContainer.translate(renderBox.x, renderBox.y);
-        paper.shapeNode.setAttribute('transform', paperTransform);
+        renderContainer.translate(renderBox.x - 1, renderBox.y - 1);
+        // paper.shapeNode.setAttribute('transform', paperTransform);
 
         // 过滤内容
         svgContainer = document.createElement('div');
         svgContainer.innerHTML = svgXml;
         svgDom = svgContainer.querySelector('svg');
-        svgDom.setAttribute('width', renderBox.width + 1);
-        svgDom.setAttribute('height', renderBox.height + 1);
+        svgDom.setAttribute('width', renderBox.width + 3);
+        svgDom.setAttribute('height', renderBox.height + 3);
         svgDom.setAttribute('style', 'font-family: Arial, "Microsoft Yahei","Heiti SC";');
 
         svgContainer = document.createElement('div');
@@ -112,8 +113,10 @@ define(function(require, exports, module) {
         // @ http://stackoverflow.com/questions/30273775/namespace-prefix-ns1-for-href-on-tagelement-is-not-defined-setattributens
         svgXml = svgXml.replace(/NS\d+:title/gi, 'xlink:title');
 
+        svgXml = svgXml.replace(/<image .*?><\/image>/gi, '')
+
         blob = new Blob([svgXml], {
-            type: 'image/svg+xml'
+            type: 'image/svg+xml;charset=utf-8'
         });
 
         svgUrl = DomURL.createObjectURL(blob);
@@ -127,7 +130,7 @@ define(function(require, exports, module) {
 
         function traverse(node) {
             var nodeData = node.data;
-            
+
             if (nodeData.image) {
                 minder.renderNode(node);
                 var nodeData = node.data;
@@ -183,8 +186,8 @@ define(function(require, exports, module) {
         var svgInfo = getSVGInfo(minder);
         var width = option && option.width && option.width > svgInfo.width ? option.width : svgInfo.width;
         var height = option && option.height && option.height > svgInfo.height ? option.height : svgInfo.height;
-        var offsetX = option && option.width && option.width > svgInfo.width ? (option.width - svgInfo.width)/2 : 0;
-        var offsetY = option && option.height && option.height > svgInfo.height ? (option.height - svgInfo.height)/2 : 0;
+        var offsetX = option && option.width && option.width > svgInfo.width ? (option.width - svgInfo.width) / 2 : 0;
+        var offsetY = option && option.height && option.height > svgInfo.height ? (option.height - svgInfo.height) / 2 : 0;
         var svgDataUrl = svgInfo.dataUrl;
         var imagesInfo = svgInfo.imagesInfo;
 
@@ -193,6 +196,9 @@ define(function(require, exports, module) {
 
         canvas.width = width + padding * 2;
         canvas.height = height + padding * 2;
+        canvas.width = canvas.width * (option?.scale ?? 1)
+        canvas.height = canvas.height * (option?.scale ?? 1)
+        ctx.scale(option?.scale ?? 1, option?.scale ?? 1)
 
         function fillBackground(ctx, style) {
             ctx.save();
@@ -215,46 +221,48 @@ define(function(require, exports, module) {
 
         // 加载节点上的图片
         function loadImages(imagesInfo) {
-            var imagePromises = imagesInfo.map(function(imageInfo) {
-                return xhrLoadImage(imageInfo);
+            var imagePromises = imagesInfo.map(function (imageInfo) {
+                // return xhrLoadImage(imageInfo);
+                return loadImage(imageInfo);
             });
 
             return Promise.all(imagePromises);
         }
 
         function drawSVG() {
-            var svgData = {url: svgDataUrl};
+            var svgData = { url: svgDataUrl };
 
-            return loadImage(svgData).then(function($image) {
-                drawImage(ctx, $image.element, offsetX, offsetY, $image.width, $image.height);
-                return loadImages(imagesInfo);
-            }).then(function($images) {
-                for(var i = 0; i < $images.length; i++) {
-                    drawImage(ctx, $images[i].element, $images[i].x + offsetX, $images[i].y + offsetY, $images[i].width, $images[i].height);
-                }
+            return new Promise(function (res, rej) {
+                loadImage(svgData).then(function ($image) {
+                    drawImage(ctx, $image.element, offsetX, offsetY, $image.width, $image.height);
+                    return loadImages(imagesInfo);
+                }).then(function ($images) {
+                    for (var i = 0; i < $images.length; i++) {
+                        drawImage(ctx, $images[i].element, $images[i].x + offsetX, $images[i].y + offsetY, $images[i].width, $images[i].height);
+                    }
 
-                DomURL.revokeObjectURL(svgDataUrl);
-                document.body.appendChild(canvas);
-                var pngBase64 = generateDataUrl(canvas);
-                
-                document.body.removeChild(canvas);
-                return pngBase64;
-            }, function(err) {
-                // 这里处理 reject，出错基本上是因为跨域，
-                // 出错后依然导出，只不过没有图片。
-                alert('脑图的节点中包含跨域图片，导出的 png 中节点图片不显示，你可以替换掉这些跨域的图片并重试。');
-                DomURL.revokeObjectURL(svgDataUrl);
-                document.body.appendChild(canvas);
-
-                var pngBase64 = generateDataUrl(canvas);
-                document.body.removeChild(canvas);
-                return pngBase64;
-            });
+                    DomURL.revokeObjectURL(svgDataUrl);
+                    document.body.appendChild(canvas);
+                    var pngBase64 = generateDataUrl(canvas);
+                    document.body.removeChild(canvas);
+                    res(pngBase64);
+                }, function (err) {
+                    // 这里处理 reject，出错基本上是因为跨域，
+                    // 出错后依然导出，只不过没有图片。
+                    // alert('脑图的节点中包含跨域图片，导出的 png 中节点图片不显示，你可以替换掉这些跨域的图片并重试。');
+                    console.error('脑图的节点中包含跨域图片，导出的 png 中节点图片不显示，你可以替换掉这些跨域的图片并重试。');
+                    DomURL.revokeObjectURL(svgDataUrl);
+                    document.body.appendChild(canvas);
+                    var pngBase64 = generateDataUrl(canvas);
+                    document.body.removeChild(canvas);
+                    rej([err, pngBase64]);
+                });
+            })
         }
 
         if (bgUrl) {
-            var bgInfo = {url: bgUrl[1]};
-            return loadImage(bgInfo).then(function($image) {
+            var bgInfo = { url: bgUrl[1] };
+            return loadImage(bgInfo).then(function ($image) {
                 fillBackground(ctx, ctx.createPattern($image.element, "repeat"));
                 return drawSVG();
             });
